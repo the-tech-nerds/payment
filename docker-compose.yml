@@ -1,0 +1,49 @@
+version: '3'
+networks:
+  groceryshop:
+    external: true
+volumes:
+  mongodb:
+    driver:
+      local
+  # mongoconfig:
+services:
+  payment:
+    container_name: payment
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    environment:
+      domain: ${DOMAIN}
+    restart: always
+    volumes:
+      - ./:/app
+    ports:
+      - ${SERVER_PORT}:3000
+    env_file:
+      - .env
+    networks:
+      - groceryshop
+    external_links:
+      - auth
+      - authredis
+      - paymentdb
+  paymentdb:
+    image: mongo
+    container_name: paymentdb
+    command: mongod --auth
+    restart: unless-stopped
+    ports:
+      - 27019:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: grocery123
+      MONGO_INITDB_DATABASE: payment
+    volumes:
+      # seeding scripts
+      # - ./mongo-entrypoint:/docker-entrypoint-initdb.d
+       # named volumes
+      - mongodb:/data/db
+      # - mongoconfig:/data/configdb
+    networks:
+       - groceryshop
