@@ -1,7 +1,6 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Res } from '@nestjs/common';
 import {
   ApiResponseService,
-  CurrentUser,
 } from '@the-tech-nerds/common-services';
 import { Response } from 'express';
 import { Payment } from '../entities/payment.entity';
@@ -15,13 +14,13 @@ export class PaymentController {
     private readonly apiResponseService: ApiResponseService,
   ) {}
 
-  @Post('/')
+  @Get('/')
   async createPayment(
-    @CurrentUser('id') userId: any,
+    // @CurrentUser('id') userId: any,
     @Body() paymentRequest: PaymentRequest,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    const data = await this.initPaymentService.create(userId, paymentRequest);
+    const data = await this.initPaymentService.create(1, paymentRequest);
     return this.apiResponseService.successResponse(
       ['Product created successfully'],
       data as Payment,
