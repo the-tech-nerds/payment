@@ -3,8 +3,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 const ormconfig: TypeOrmModuleOptions = {
   type: 'mongodb',
   host: process.env.MANGO_HOST || 'paymentdb',
-  url:
-    'mongodb://root:grocery123@paymentdb:27017/payment?authSource=admin&readPreference=primary&gssapiServiceName=mongodb',
+  url: 'mongodb://root:grocery123@paymentdb:27017/payment?authSource=admin&readPreference=primary&gssapiServiceName=mongodb',
   useNewUrlParser: true,
   maxQueryExecutionTime: 10000,
   entities: [`${__dirname}/**/*.entity{.ts,.js}`],
