@@ -1,4 +1,5 @@
 export interface PaymentRequest {
+  payment_type: string;
   store_id: string;
   store_passwd: string;
   total_amount: number;
@@ -41,4 +42,5 @@ export interface PaymentRequest {
   vat?: number;
   discount_amount?: number;
   convenience_fee?: number;
+  is_live?: boolean;
 }

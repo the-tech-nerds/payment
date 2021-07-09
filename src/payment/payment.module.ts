@@ -3,11 +3,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApiResponseService } from '@the-tech-nerds/common-services';
 import { PaymentController } from './controller/payment.controller';
 import { Payment } from './entities/payment.entity';
-import { InitPaymentService } from './service/init-payment.service';
+import { SslcommerzPaymentService } from './service/SSLCommerz/sslcommerz-payment.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Payment])],
-  providers: [ApiResponseService, InitPaymentService],
+  providers: [ApiResponseService, SslcommerzPaymentService],
   controllers: [PaymentController],
   exports: [],
 })

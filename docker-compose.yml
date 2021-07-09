@@ -34,7 +34,7 @@ services:
     command: mongod --auth
     restart: unless-stopped
     ports:
-      - 27019:27017
+      - 27020:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: grocery123
