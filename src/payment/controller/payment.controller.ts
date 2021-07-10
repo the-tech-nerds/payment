@@ -23,74 +23,93 @@ export class PaymentController {
     @Body() paymentRequest: PaymentRequest,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
+
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
     const data = await this.context.pay(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
-      res,
-    );
+
+    if (!data.payment_init_failed_reason) {
+      return this.apiResponseService.successResponse(
+        ['Payment initiate successfully'],
+        data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.payment_init_failed_reason || 'Payment initiate failed'],
+        res,
+      );
+    }
+
   }
 
   @Post('/cancel')
   async cancelPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() paymentRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
     const data = await this.context.cancel(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
+    return this.apiResponseService.response(
+      'Payment process is cancel',
+      'fail',
+      422,
+      data,
       res,
     );
   }
 
   @Post('/fail')
   async failPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() paymentFailRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.fail(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
+    this.context = new PaymentActionContext(this.getPaymentService(paymentFailRequest?.payment_type));
+    const data = await this.context.fail(paymentFailRequest);
+    return this.apiResponseService.response(
+      'Payment process is fail',
+      'fail',
+      422,
+      data,
       res,
     );
   }
 
   @Post('/success')
   async successPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() paymentSuccessRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.success(paymentRequest);
+    this.context = new PaymentActionContext(this.getPaymentService(paymentSuccessRequest?.payment_type));
+    const data = await this.context.success(paymentSuccessRequest);
     return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
+      ['Payment process successfully done'],
+      data,
       res,
     );
   }
 
   @Post('/ipn')
   async ipnPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() paymentIpnRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.ipnCheck(paymentRequest);
+    // @ts-ignore
+    paymentIpnRequest?.payment_type = 'sslcommerz';
+    // @ts-ignore
+    paymentIpnRequest?.store_passwd = this.getStoreInfo(paymentIpnRequest.store_id);
+    this.context = new PaymentActionContext(this.getPaymentService(paymentIpnRequest?.payment_type));
+    const paymentValidationResponse = await this.context.validation(paymentIpnRequest);
+    const data = await this.context.ipnCheck(paymentIpnRequest, paymentValidationResponse);
     return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
+      ['Ipn request received please check the data property'],
+      data ,
       res,
     );
   }
 
   @Post('/status')
   async statusPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() paymentRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
@@ -137,5 +156,13 @@ export class PaymentController {
       default:
         return this.sslcommerzPaymentService;
     }
+  }
+
+  private getStoreInfo(store_id: string) {
+    switch (store_id) {
+      case 'testbox':
+        return 'qwerty';
+    }
+    return 'testbox';
   }
 }

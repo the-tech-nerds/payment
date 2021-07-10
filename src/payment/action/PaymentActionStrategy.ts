@@ -14,7 +14,7 @@ export default interface PaymentActionStrategy {
 
   paymentStatus(paymentRequest: any): any;
 
-  ipnCheck(paymentRequest: any): any;
+  ipnCheck(paymentRequest: any, paymentValidationResponse: any): any;
 
   success(paymentRequest: any): any;
 

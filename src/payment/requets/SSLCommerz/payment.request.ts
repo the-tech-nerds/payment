@@ -1,8 +1,15 @@
-export interface PaymentRequest {
+import { IsNotEmpty } from 'class-validator';
+
+export class PaymentRequest {
+  @IsNotEmpty({ message: 'Payment gateway type invalid or missing' })
   payment_type: string;
+
+  @IsNotEmpty({ message: 'Payment gateway store id missing or invalid' })
   store_id: string;
+
   store_passwd: string;
   total_amount: number;
+
   currency?: string;
   tran_id: string;
   product_category?: string;

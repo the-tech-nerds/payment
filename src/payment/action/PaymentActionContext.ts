@@ -24,8 +24,8 @@ export default class PaymentActionContext {
     return this.strategy.paymentStatus(request);
   }
 
-  ipnCheck(request: any) {
-    return this.strategy.ipnCheck(request);
+  ipnCheck(ipnResponse: any, validationResponse: any) {
+    return this.strategy.ipnCheck(ipnResponse, validationResponse);
   }
 
   success(request: any) {
