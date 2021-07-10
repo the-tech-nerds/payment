@@ -1,7 +1,6 @@
-
 export default class SslcommerzPaymentRefundQueryService {
 
-  static execute(response: any) {
+  static execute(response: any, paymentRequest: any) {
 
   }
 }

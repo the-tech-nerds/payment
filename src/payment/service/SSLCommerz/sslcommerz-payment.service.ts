@@ -52,18 +52,18 @@ export class SslcommerzPaymentService extends AbstractActionStrategy implements 
   async refund(paymentRequest: any): Promise<any> {
     this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
     const resp = await this.sslcommerzService.initiateRefund(paymentRequest);
-    return SslcommerzPaymentRefundInitiateService.execute(resp);
+    return SslcommerzPaymentRefundInitiateService.execute(resp,paymentRequest);
   }
 
   async refundQuery(paymentRequest: any): Promise<any> {
     this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
     const resp = await this.sslcommerzService.refundQuery(paymentRequest);
-    return SslcommerzPaymentRefundQueryService.execute(resp);
+    return SslcommerzPaymentRefundQueryService.execute(resp, paymentRequest);
   }
 
   async paymentStatus(paymentRequest: any): Promise<any> {
     this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
     const resp = await this.sslcommerzService.transactionQueryByTransactionId(paymentRequest);
-    return SslcommerzPaymentStatusService.execute(resp);
+    return SslcommerzPaymentStatusService.execute(resp, paymentRequest);
   }
 }

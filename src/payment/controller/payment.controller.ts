@@ -112,11 +112,15 @@ export class PaymentController {
     @Body() paymentRequest: any,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
+    // @ts-ignore
+    paymentRequest?.payment_type = 'sslcommerz';
+    // @ts-ignore
+    paymentRequest?.store_passwd = this.getStoreInfo(paymentRequest.store_id);
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
     const data = await this.context.paymentStatus(paymentRequest);
     return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
+      ['Payment Status retrieved successfully'],
+      data,
       res,
     );
   }

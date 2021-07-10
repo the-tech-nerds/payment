@@ -1,14 +1,9 @@
-// @ts-ignore
-import { Payment } from '../../entities/entity';
 import { getMongoManager } from 'typeorm';
+import { Payment } from '../../entities/payment.entity';
 
 export default class SslcommerzPaymentIpnService {
 
   static execute(ipnResponse: any, validationResponse: any) {
-    let risk_level = 0;
-    if (ipnResponse.risk_level && ipnResponse.risk_level == 1) {
-      risk_level = 1;
-    }
     getMongoManager().updateOne(Payment, { tran_id: ipnResponse.tran_id }, {
       amount: ipnResponse.amount,
       currency: ipnResponse.currency,
@@ -39,7 +34,7 @@ export default class SslcommerzPaymentIpnService {
         verify_sign_sha2: ipnResponse.verify_sign_sha2,
       },
     });
-    if (risk_level == 1) {
+    if (ipnResponse.risk_level == 1) {
       return {
         message: 'This is a high risk transaction',
       };
@@ -49,9 +44,9 @@ export default class SslcommerzPaymentIpnService {
         message: 'This is a invalid transaction amount miss match or not valid status',
       };
     }
+    // @todo provide the service and call queue
     return {
       message: 'payment check and it\'s a success transaction',
     };
-    // @todo provide the service and call queue
   }
 }
