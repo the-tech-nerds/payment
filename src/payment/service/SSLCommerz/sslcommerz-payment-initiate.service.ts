@@ -1,11 +1,11 @@
 import { getMongoManager } from 'typeorm';
 import { Payment } from '../../entities/payment.entity';
 import { Status } from '../../enum/payment-type.enum';
+import { SSLCommerzResponse } from '../../requests/payment.request';
 
 export default class SslcommerzPaymentInitiateService {
 
   static async execute(response: any, paymentRequest: any) {
-
     let process_response: any = {};
     const payment = new Payment();
     const tempPayment = await getMongoManager().findOne(Payment, { tran_id: paymentRequest.tran_id });
@@ -30,6 +30,6 @@ export default class SslcommerzPaymentInitiateService {
       process_response.payment_init_failed_reason = response?.failedreason;
     }
     getMongoManager().save(payment);
-    return process_response;
+    return { a: 10 } as unknown as SSLCommerzResponse;
   }
 }

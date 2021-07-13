@@ -3,17 +3,15 @@ import {
   ApiResponseService,
 } from '@the-tech-nerds/common-services';
 import { Response } from 'express';
-import { Payment } from '../entities/payment.entity';
-import { PaymentRequest } from '../requets/SSLCommerz/payment.request';
-import PaymentActionContext from '../action/PaymentActionContext';
-import { SslcommerzPaymentService } from '../service/SSLCommerz/sslcommerz-payment.service';
+import { PaymentRequest } from '../requests/payment.request';
+import { PaymentResolver } from '../action/payment-resolver';
 
 @Controller()
 export class PaymentController {
-  context: PaymentActionContext;
+  context: any;
 
   constructor(
-    private readonly sslcommerzPaymentService: SslcommerzPaymentService,
+    private readonly paymentResolver: PaymentResolver,
     private readonly apiResponseService: ApiResponseService,
   ) {
   }
@@ -22,11 +20,19 @@ export class PaymentController {
   async createPayment(
     @Body() paymentRequest: PaymentRequest,
     @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.pay(paymentRequest);
+  ): Promise<Response<any>> {
+    const {
+      payment_type: paymentType = null,
+    } = paymentRequest;
 
-    if (!data.payment_init_failed_reason) {
+    if (!paymentType) {
+      throw new Error('Payment type is required');
+    }
+
+    const context = this.paymentResolver.resolve(paymentType);
+    const data = await context.pay(paymentRequest);
+
+    if (data) {
       return this.apiResponseService.successResponse(
         ['Payment initiate successfully'],
         data,
@@ -34,14 +40,14 @@ export class PaymentController {
       );
     } else {
       return this.apiResponseService.badRequestError(
-        [data.payment_init_failed_reason || 'Payment initiate failed'],
+        [data || 'Payment initiate failed'],
         res,
       );
     }
     // return null;
 
   }
-
+/*
   @Post('/cancel')
   async cancelPayment(
     @Body() paymentRequest: any,
@@ -97,7 +103,7 @@ export class PaymentController {
     paymentIpnRequest?.payment_type = 'sslcommerz';
     // @ts-ignore
     paymentIpnRequest?.store_passwd = PaymentController.getStoreInfo(paymentIpnRequest.store_id);
-    this.context = new PaymentActionContext(this.getPaymentService(paymentIpnRequest?.payment_type));
+    this.context = new PaymentActionContext(paymentIpnRequest?.payment_type);
     const paymentValidationResponse = await this.context.validation(paymentIpnRequest);
     const data = await this.context.ipnCheck(paymentIpnRequest, paymentValidationResponse);
     return this.apiResponseService.successResponse(
@@ -153,20 +159,11 @@ export class PaymentController {
     );
   }
 
-  getPaymentService(payment_type: any) {
-    switch (payment_type) {
-      case 'sslcommerz':
-        return  this.sslcommerzPaymentService;
-      default:
-        return this.sslcommerzPaymentService;
-    }
-  }
-
-   getStoreInfo(store_id: string) {
+  getStoreInfo(store_id: string) {
     switch (store_id) {
       case 'testbox':
         return 'qwerty';
     }
     return 'testbox';
-  }
+  }*/
 }

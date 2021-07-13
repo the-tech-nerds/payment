@@ -1,3 +1,3 @@
-export default abstract class AbstractActionStrategy {
+export default abstract class AbstractActionStrategy<T> {
 
 }

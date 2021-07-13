@@ -1,10 +1,12 @@
 import PaymentActionStrategy from './PaymentActionStrategy';
+import { PaymentResponse } from '../requests/payment.request';
+import { PaymentRequest } from '../requests/payment.request';
 
-export default class PaymentActionContext {
-  constructor(private strategy: PaymentActionStrategy) {
+export default class PaymentActionContext<T> {
+  constructor(private strategy: PaymentActionStrategy<T>) {
   }
 
-  pay(request: any) {
+  pay(request: PaymentRequest): Promise<PaymentResponse<T>> {
     return this.strategy.pay(request);
   }
 

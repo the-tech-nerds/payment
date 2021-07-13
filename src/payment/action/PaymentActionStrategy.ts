@@ -1,6 +1,7 @@
-export default interface PaymentActionStrategy {
+import { PaymentResponse, PaymentRequest } from '../requests/payment.request';
 
-  pay(paymentRequest: any): any;
+export default interface PaymentActionStrategy<T> {
+  pay(paymentRequest: PaymentRequest): Promise<PaymentResponse<T>>;
 
   validation(paymentRequest: any): any;
 

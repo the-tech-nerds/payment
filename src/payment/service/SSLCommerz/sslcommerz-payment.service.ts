@@ -11,21 +11,20 @@ import SslcommerzPaymentValidation from './sslcommerz-payment-validation.service
 import SslcommerzPaymentRefundInitiateService from './sslcommerz-payment-refund-initiate.service';
 import SslcommerzPaymentRefundQueryService from './sslcommerz-payment-refund-query.service';
 import SslcommerzPaymentStatusService from './sslcommerz-payment-status.service';
+import { PaymentResponse } from '../../requests/payment.request';
 
 
 @Injectable()
-export class SslcommerzPaymentService extends AbstractActionStrategy implements PaymentActionStrategy {
+export class SslcommerzPaymentService<T> extends AbstractActionStrategy<T> implements PaymentActionStrategy<T> {
   sslcommerzService: SslCommerzPayment;
 
   constructor() {
     super();
+    this.sslcommerzService = new SslCommerzPayment(process.env.SSLCOMMERZ_STORE_ID, process.env.SSLCOMMERZ_STORE_PASSWORD, !!process.env.SSLCOMMERZ_STORE_IS_LIVE);
   }
 
-  async pay(paymentRequest: any): Promise<any> {
-
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
+  async pay(paymentRequest: PaymentRequest):Promise<PaymentResponse<T>> {
     const resp = await this.sslcommerzService.init(paymentRequest);
-
     return SslcommerzPaymentInitiateService.execute(resp, paymentRequest);
   }
 
@@ -54,7 +53,7 @@ export class SslcommerzPaymentService extends AbstractActionStrategy implements 
   async refund(paymentRequest: any): Promise<any> {
     this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
     const resp = await this.sslcommerzService.initiateRefund(paymentRequest);
-    return SslcommerzPaymentRefundInitiateService.execute(resp,paymentRequest);
+    return SslcommerzPaymentRefundInitiateService.execute(resp, paymentRequest);
   }
 
   async refundQuery(paymentRequest: any): Promise<any> {
