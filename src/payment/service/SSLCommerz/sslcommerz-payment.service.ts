@@ -22,8 +22,10 @@ export class SslcommerzPaymentService extends AbstractActionStrategy implements 
   }
 
   async pay(paymentRequest: any): Promise<any> {
+
     this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
     const resp = await this.sslcommerzService.init(paymentRequest);
+
     return SslcommerzPaymentInitiateService.execute(resp, paymentRequest);
   }
 

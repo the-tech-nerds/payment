@@ -1,9 +1,5 @@
 export default interface PaymentActionStrategy {
 
-  checkValidation(request: Request): any;
-
-  checkPaymentType(request: any): any;
-
   pay(paymentRequest: any): any;
 
   validation(paymentRequest: any): any;

@@ -5,6 +5,7 @@ import { Status } from '../../enum/payment-type.enum';
 export default class SslcommerzPaymentInitiateService {
 
   static async execute(response: any, paymentRequest: any) {
+
     let process_response: any = {};
     const payment = new Payment();
     const tempPayment = await getMongoManager().findOne(Payment, { tran_id: paymentRequest.tran_id });

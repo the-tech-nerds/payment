@@ -23,7 +23,6 @@ export class PaymentController {
     @Body() paymentRequest: PaymentRequest,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
     const data = await this.context.pay(paymentRequest);
 
@@ -39,6 +38,7 @@ export class PaymentController {
         res,
       );
     }
+    // return null;
 
   }
 
@@ -96,7 +96,7 @@ export class PaymentController {
     // @ts-ignore
     paymentIpnRequest?.payment_type = 'sslcommerz';
     // @ts-ignore
-    paymentIpnRequest?.store_passwd = this.getStoreInfo(paymentIpnRequest.store_id);
+    paymentIpnRequest?.store_passwd = PaymentController.getStoreInfo(paymentIpnRequest.store_id);
     this.context = new PaymentActionContext(this.getPaymentService(paymentIpnRequest?.payment_type));
     const paymentValidationResponse = await this.context.validation(paymentIpnRequest);
     const data = await this.context.ipnCheck(paymentIpnRequest, paymentValidationResponse);
@@ -115,7 +115,7 @@ export class PaymentController {
     // @ts-ignore
     paymentRequest?.payment_type = 'sslcommerz';
     // @ts-ignore
-    paymentRequest?.store_passwd = this.getStoreInfo(paymentRequest.store_id);
+    paymentRequest?.store_passwd = PaymentController.getStoreInfo(paymentRequest.store_id);
     this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
     const data = await this.context.paymentStatus(paymentRequest);
     return this.apiResponseService.successResponse(
@@ -153,16 +153,16 @@ export class PaymentController {
     );
   }
 
-  private getPaymentService(payment_type: any) {
+  getPaymentService(payment_type: any) {
     switch (payment_type) {
       case 'sslcommerz':
-        return this.sslcommerzPaymentService;
+        return  this.sslcommerzPaymentService;
       default:
         return this.sslcommerzPaymentService;
     }
   }
 
-  private getStoreInfo(store_id: string) {
+   getStoreInfo(store_id: string) {
     switch (store_id) {
       case 'testbox':
         return 'qwerty';
