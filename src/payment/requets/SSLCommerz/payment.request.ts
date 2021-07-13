@@ -1,7 +1,8 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, ValidateNested } from 'class-validator';
 import { HttpStatus } from '@nestjs/common';
+import { Type } from 'class-transformer';
 
-enum PaymentType {
+export enum PaymentType {
   SSLCOMMERZ = 'sslcommerz',
   BKASH = 'bkash'
 }
@@ -57,19 +58,32 @@ export class AdditionalParameters {
 }
 
 export class PaymentRequest {
+  @ValidateNested({ each: true })
+  @Type(() => Customer)
   customer: Customer;
+
+  @ValidateNested({ each: true })
+  @Type(() => Shipping)
   shipping: Shipping;
+
+  @ValidateNested({ each: true })
+  @Type(() => Product)
   product_info: Product;
+
+  @IsEnum(PaymentType,{message:'Payment type is missing or invalid'})
   payment_type: PaymentType;
+
+  @ValidateNested({ each: true })
+  @Type(() => AdditionalParameters)
   additional_parameters: AdditionalParameters;
-  @IsNotEmpty({ message: 'Customer city is missing or invalid' })
+  @IsNotEmpty({ message: 'Total amount is missing or invalid' })
   @IsNumber({
     allowInfinity: false,
     allowNaN: false,
     maxDecimalPlaces: 2,
   }, { message: 'Total amount should be number and max decimal places ' })
   total_amount: number;
-  @IsNotEmpty({ message: 'Customer city is missing or invalid' })
+  @IsNotEmpty({ message: 'Transaction id. is missing or invalid' })
   transaction_id: string;
   currency: string = 'BDT';
 }
