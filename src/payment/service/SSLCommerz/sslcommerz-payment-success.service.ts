@@ -1,6 +1,15 @@
+
+import { PaymentResponse, SSLCommerzSuccessResponse } from '../../requests/payment.request';
+
 export default class SslcommerzPaymentSuccessService {
 
-  static execute(response: any) {
-    return {tran_id:response.tran_id}
+  constructor(
+    // @InjectRepository(Payment)
+    //           private paymentRepository: Repository<Payment>
+  ) {
+  }
+
+  execute<T>(sslcommerzSuccessResponse: SSLCommerzSuccessResponse): Promise<PaymentResponse<T>> {
+    return sslcommerzSuccessResponse as Promise<PaymentResponse<T>>;
   }
 }
