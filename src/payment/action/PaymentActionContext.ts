@@ -10,25 +10,25 @@ export default class PaymentActionContext<T> {
     return this.strategy.pay(request);
   }
 
-  validation(request: any) {
-    return this.strategy.validation(request);
-  }
+  // validation(request: any) {
+  //   return this.strategy.validation(request);
+  // }
+  //
+  // refund(request: any) {
+  //   return this.strategy.refund(request);
+  // }
+  //
+  // refundQuery(request: any) {
+  //   return this.strategy.refundQuery(request);
+  // }
 
-  refund(request: any) {
-    return this.strategy.refund(request);
-  }
-
-  refundQuery(request: any) {
-    return this.strategy.refundQuery(request);
-  }
-
-  paymentStatus(request: any) {
-    return this.strategy.paymentStatus(request);
-  }
-
-  ipnCheck(ipnResponse: any, validationResponse: any) {
-    return this.strategy.ipnCheck(ipnResponse, validationResponse);
-  }
+  // paymentStatus(request: any) {
+  //   return this.strategy.paymentStatus(request);
+  // }
+  //
+  // ipnCheck(ipnResponse: any, validationResponse: any) {
+  //   return this.strategy.ipnCheck(ipnResponse, validationResponse);
+  // }
 
   success(request: any) {
     return this.strategy.success(request);

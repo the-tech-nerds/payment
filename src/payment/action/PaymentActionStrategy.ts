@@ -14,8 +14,8 @@ export default interface PaymentActionStrategy<T> {
   // ipnCheck(paymentRequest: any, paymentValidationResponse: any): any;
 
   success(paymentRequest: any): any;
-  //
-  // fail(paymentRequest: any): any;
-  //
-  // cancel(paymentRequest: any): any;
+
+  fail(paymentRequest: any): any;
+
+  cancel(paymentRequest: any): any;
 }

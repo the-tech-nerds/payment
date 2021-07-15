@@ -14,7 +14,7 @@ export default class SslcommerzPaymentInitiateService {
 
   async execute<T>(paymentRequest: PaymentRequest, sslcommerzService: SslCommerzPayment): Promise<PaymentResponse<T>> {
 
-    const paymentEntity = await this.paymentRepository.findOne({ tran_id: paymentRequest.transaction_id });
+    const paymentEntity = await this.paymentRepository.findOne({ tran_id: paymentRequest.tran_id });
     if (paymentEntity) {
       return {
         code: HttpStatus.BAD_REQUEST,
@@ -26,7 +26,7 @@ export default class SslcommerzPaymentInitiateService {
     let resp: SSLCommerzInitiateResponse;
     resp = await sslcommerzService.init({
       total_amount: paymentRequest.total_amount,
-      tran_id: paymentRequest.transaction_id,
+      tran_id: paymentRequest.tran_id,
       currency: paymentRequest.currency,
       ...paymentRequest.customer,
       ...paymentRequest.product_info,
@@ -55,7 +55,7 @@ export default class SslcommerzPaymentInitiateService {
     await this.paymentRepository.save({
       payment_type: paymentRequest.payment_type,
       store_id: process.env.SSLCOMMERZ_STORE_ID,
-      tran_id: paymentRequest.transaction_id,
+      tran_id: paymentRequest.tran_id,
       session_key: resp.sessionkey,
       amount: paymentRequest.total_amount,
       currency: paymentRequest.currency,

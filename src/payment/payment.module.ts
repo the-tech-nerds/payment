@@ -6,10 +6,17 @@ import { Payment } from './entities/payment.entity';
 import { SslcommerzPaymentService } from './service/SSLCommerz/sslcommerz-payment.service';
 import { PaymentResolver } from './action/payment-resolver';
 import SslcommerzPaymentInitiateService from './service/SSLCommerz/sslcommerz-payment-initiate.service';
+import SslcommerzPaymentSuccessService from './service/SSLCommerz/sslcommerz-payment-success.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Payment])],
-  providers: [ApiResponseService, PaymentResolver, SslcommerzPaymentService, SslcommerzPaymentInitiateService],
+  providers: [
+    ApiResponseService,
+    PaymentResolver,
+    SslcommerzPaymentService,
+    SslcommerzPaymentInitiateService,
+    SslcommerzPaymentSuccessService,
+  ],
   controllers: [PaymentController],
   exports: [],
 })

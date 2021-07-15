@@ -3,8 +3,10 @@ import { SslCommerzPayment } from 'sslcommerz';
 import PaymentActionStrategy from '../../action/PaymentActionStrategy';
 import SslcommerzPaymentInitiateService from './sslcommerz-payment-initiate.service';
 import SslcommerzPaymentSuccessService from './sslcommerz-payment-success.service';
-import { PaymentResponse, PaymentRequest, SSLCommerzSuccessResponse } from '../../requests/payment.request';
+import { PaymentResponse, PaymentRequest, SSLCommerzSuccessFailCancelResponse } from '../../requests/payment.request';
 import AbstractActionStrategy from '../../action/abstract-action-strategy';
+import SslcommerzPaymentFailService from './sslcommerz-payment-fail.service';
+import SslcommerzPaymentCancelService from './sslcommerz-payment-cancel.service';
 
 
 @Injectable()
@@ -13,7 +15,8 @@ export class SslcommerzPaymentService<T> extends AbstractActionStrategy<T> imple
 
   constructor(
     private readonly sslcommerzPaymentInitiateService: SslcommerzPaymentInitiateService,
-    // private readonly sslcommerzPaymentCancelService: SslcommerzPaymentCancelService,
+    private readonly sslcommerzPaymentCancelService: SslcommerzPaymentCancelService,
+    private readonly sslcommerzPaymentFailService: SslcommerzPaymentFailService,
     private readonly sslcommerzPaymentSuccessService: SslcommerzPaymentSuccessService
   ) {
     super();
@@ -25,17 +28,18 @@ export class SslcommerzPaymentService<T> extends AbstractActionStrategy<T> imple
     return this.sslcommerzPaymentInitiateService.execute<T>(paymentRequest, this.sslcommerzService);
   }
 
- /* async cancel(paymentResponse: any): Promise<PaymentResponse<T>> {
-    return this.sslcommerzPaymentCancelService.execute(paymentResponse);
-  }*/
+  async cancel(paymentCancelResponse: any): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentCancelService.execute<T>(paymentCancelResponse);
+  }
 
-  async success(successResponse: SSLCommerzSuccessResponse): Promise<PaymentResponse<T>> {
-    return this.sslcommerzPaymentSuccessService.execute<T>(successResponse);
+  async success(paymentSuccessResponse: SSLCommerzSuccessFailCancelResponse): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentSuccessService.execute<T>(paymentSuccessResponse);
+  }
+  async fail(paymentFailResponse: any): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentFailService.execute<T>(paymentFailResponse);
   }
 /*
-  async fail(paymentResponse: any): Promise<PaymentResponse<T>> {
-    return SslcommerzPaymentFailService.execute(paymentResponse);
-  }
+
 
   async ipnCheck(paymentResponse: any, paymentValidationResponse: any): Promise<PaymentResponse<T>> {
     return SslcommerzPaymentIpnService.execute(paymentResponse, paymentValidationResponse);

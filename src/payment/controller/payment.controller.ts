@@ -44,52 +44,39 @@ export class PaymentController {
     // return null;
 
   }
+
   @Post('/success')
   async successPayment(
     @Body() paymentSuccessRequest: any,
     @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
+  ): Promise<any> {
     const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
     const data = await context.success(paymentSuccessRequest);
-    return this.apiResponseService.successResponse(
-      ['Payment process successfully done'],
-      data,
-      res,
-    );
+    return res.redirect(data.data);
+  }
+  @Post('/cancel')
+  async cancelPayment(
+    @Body() paymentSuccessRequest: any,
+    @Res() res: Response,
+  ): Promise<any> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.success(paymentSuccessRequest);
+    return res.redirect(data.data);
   }
 
+  @Post('/fail')
+  async failPayment(
+    @Body() paymentSuccessRequest: any,
+    @Res() res: Response,
+  ): Promise<any> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.success(paymentSuccessRequest);
+    return res.redirect(data.data);
+  }
   /*
-    @Post('/cancel')
-    async cancelPayment(
-      @Body() paymentRequest: any,
-      @Res() res: Response,
-    ): Promise<Response<ResponseModel>> {
-      this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-      const data = await this.context.cancel(paymentRequest);
-      return this.apiResponseService.response(
-        'Payment process is cancel',
-        'fail',
-        422,
-        data,
-        res,
-      );
-    }
 
-    @Post('/fail')
-    async failPayment(
-      @Body() paymentFailRequest: any,
-      @Res() res: Response,
-    ): Promise<Response<ResponseModel>> {
-      this.context = new PaymentActionContext(this.getPaymentService(paymentFailRequest?.payment_type));
-      const data = await this.context.fail(paymentFailRequest);
-      return this.apiResponseService.response(
-        'Payment process is fail',
-        'fail',
-        422,
-        data,
-        res,
-      );
-    }
+
+
 
 
     @Post('/ipn')
