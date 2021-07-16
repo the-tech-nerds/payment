@@ -13,10 +13,10 @@ export class SSLCommerzPaymentInfo {
   verify_key?: string;
 
   @Column({ type: 'boolean', default: false })
-  risk_level?: boolean;
+  risk_level?: number;
 
   @Column({ type: 'varchar', nullable: true })
-  risk_title?: boolean;
+  risk_title?: string;
 
   @Column({ type: 'integer', length: 2, nullable: true })
   emi_instalment?: number;
@@ -41,6 +41,9 @@ export class SSLCommerzPaymentInfo {
 
   @Column({ type: 'varchar', length: 63, nullable: true })
   refund_ref_id?: string;
+
+  @Column({ type: 'varchar', length: 63, nullable: true })
+  refund_status?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   refund_error_reason?: string;
@@ -85,7 +88,7 @@ export class Payment extends BaseEntity {
   id: ObjectID;
 
   @Column({ type: 'varchar', length: 31 })
-  gateway_type: string;
+  payment_type: string;
 
   @Column({ type: 'varchar', length: 63 })
   store_id: string;
@@ -108,7 +111,7 @@ export class Payment extends BaseEntity {
   @Column({ type: 'varchar', default: 'BDT' })
   currency: string;
 
-  @Column({ type: 'varchar', length: 23, default: 'INITIATED', nullable: true })
+  @Column({ type: 'varchar', length: 23, default: 'initiated', nullable: true })
   status: string;
 
   @Column({ type: 'varchar', length: 23, default: 'processing' })
@@ -118,10 +121,17 @@ export class Payment extends BaseEntity {
   payment_init_failed_reason: string;
 
   @Column({ type: 'datetime', length: 23, nullable: true })
-  tran_date: string;
+  success_time: string;
 
-  @Column({ type: 'varchar', length: 3, nullable: true })
-  currency_type: string;
+  @Column({ type: 'datetime', length: 23, nullable: true })
+  fail_time: string;
+
+  @Column({ type: 'datetime', length: 23, nullable: true })
+  cancel_time: string;
+
+  @Column({ type: 'datetime', length: 23, nullable: true })
+  callback_time: string;
+
   @Column(type => SSLCommerzPaymentInfo)
   payment_info: SSLCommerzPaymentInfo; // SSLCommerzPayment |Bkash
 }

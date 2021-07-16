@@ -1,19 +1,20 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
-import {
-  ApiResponseService,
-} from '@the-tech-nerds/common-services';
+import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import { ApiResponseService } from '@the-tech-nerds/common-services';
 import { Response } from 'express';
-import { Payment } from '../entities/payment.entity';
-import { PaymentRequest } from '../requets/SSLCommerz/payment.request';
-import PaymentActionContext from '../action/PaymentActionContext';
-import { SslcommerzPaymentService } from '../service/SSLCommerz/sslcommerz-payment.service';
+import {
+  PaymentRequest, PaymentStatusRequest,
+  PaymentType,
+  SSLCommerzRefundInitiateRequest, RefundQueryRequest,
+  SSLCommerzSuccessFailCancelIPNResponse,
+} from '../requests/payment.request';
+import { PaymentResolver } from '../action/payment-resolver';
 
 @Controller()
 export class PaymentController {
-  context: PaymentActionContext;
+  context: any;
 
   constructor(
-    private readonly sslcommerzPaymentService: SslcommerzPaymentService,
+    private paymentResolver: PaymentResolver,
     private readonly apiResponseService: ApiResponseService,
   ) {
   }
@@ -22,147 +23,146 @@ export class PaymentController {
   async createPayment(
     @Body() paymentRequest: PaymentRequest,
     @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
+  ): Promise<Response<any>> {
+    const {
+      payment_type: paymentType = null,
+    } = paymentRequest;
 
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.pay(paymentRequest);
+    if (!paymentType) {
+      throw new Error('Payment type is required');
+    }
+    const context = this.paymentResolver.resolve(paymentType);
+    const data = await context.pay(paymentRequest);
 
-    if (!data.payment_init_failed_reason) {
+    if (data.code == HttpStatus.OK) {
       return this.apiResponseService.successResponse(
-        ['Payment initiate successfully'],
-        data,
+        [data.message || 'Payment initiate successfully'],
+        data.data,
         res,
       );
     } else {
       return this.apiResponseService.badRequestError(
-        [data.payment_init_failed_reason || 'Payment initiate failed'],
+        [data.message || 'Payment initiate failed'],
         res,
       );
     }
+    // return null;
 
-  }
-
-  @Post('/cancel')
-  async cancelPayment(
-    @Body() paymentRequest: any,
-    @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.cancel(paymentRequest);
-    return this.apiResponseService.response(
-      'Payment process is cancel',
-      'fail',
-      422,
-      data,
-      res,
-    );
-  }
-
-  @Post('/fail')
-  async failPayment(
-    @Body() paymentFailRequest: any,
-    @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentFailRequest?.payment_type));
-    const data = await this.context.fail(paymentFailRequest);
-    return this.apiResponseService.response(
-      'Payment process is fail',
-      'fail',
-      422,
-      data,
-      res,
-    );
   }
 
   @Post('/success')
   async successPayment(
     @Body() paymentSuccessRequest: any,
     @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentSuccessRequest?.payment_type));
-    const data = await this.context.success(paymentSuccessRequest);
-    return this.apiResponseService.successResponse(
-      ['Payment process successfully done'],
-      data,
-      res,
-    );
+  ): Promise<any> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.success(paymentSuccessRequest);
+    return res.redirect(data.data);
+  }
+
+  @Post('/cancel')
+  async cancelPayment(
+    @Body() paymentSuccessRequest: any,
+    @Res() res: Response,
+  ): Promise<any> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.success(paymentSuccessRequest);
+    return res.redirect(data.data);
+  }
+
+  @Post('/fail')
+  async failPayment(
+    @Body() paymentSuccessRequest: any,
+    @Res() res: Response,
+  ): Promise<any> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.success(paymentSuccessRequest);
+    return res.redirect(data.data);
   }
 
   @Post('/ipn')
   async ipnPayment(
-    @Body() paymentIpnRequest: any,
+    @Body() ipnResponse: SSLCommerzSuccessFailCancelIPNResponse,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    // @ts-ignore
-    paymentIpnRequest?.payment_type = 'sslcommerz';
-    // @ts-ignore
-    paymentIpnRequest?.store_passwd = this.getStoreInfo(paymentIpnRequest.store_id);
-    this.context = new PaymentActionContext(this.getPaymentService(paymentIpnRequest?.payment_type));
-    const paymentValidationResponse = await this.context.validation(paymentIpnRequest);
-    const data = await this.context.ipnCheck(paymentIpnRequest, paymentValidationResponse);
-    return this.apiResponseService.successResponse(
-      ['Ipn request received please check the data property'],
-      data ,
-      res,
-    );
-  }
-
-  @Post('/status')
-  async statusPayment(
-    @Body() paymentRequest: any,
-    @Res() res: Response,
-  ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.paymentStatus(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
-      res,
-    );
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.ipnCheck(ipnResponse);
+    if (data.code == HttpStatus.OK) {
+      return this.apiResponseService.successResponse(
+        [data.message || 'Payment initiate successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment initiate failed'],
+        res,
+      );
+    }
   }
 
   @Post('/refund-initiate')
   async refundpayiatePayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() refundInitiateRequest: SSLCommerzRefundInitiateRequest,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.refund(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
-      res,
-    );
+    const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+    const data = await context.refund(refundInitiateRequest);
+    if (data.code == HttpStatus.OK) {
+      return this.apiResponseService.successResponse(
+        [data.message || 'Payment refund initiate successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment initiate failed'],
+        res,
+      );
+    }
   }
-
   @Post('/refund-query')
   async refundQueryPayment(
-    @Body() paymentRequest: PaymentRequest,
+    @Body() refundInitiateRequest: RefundQueryRequest,
     @Res() res: Response,
   ): Promise<Response<ResponseModel>> {
-    this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-    const data = await this.context.refundQuery(paymentRequest);
-    return this.apiResponseService.successResponse(
-      ['Product created successfully'],
-      data as Payment,
-      res,
-    );
-  }
-
-  private getPaymentService(payment_type: any) {
-    switch (payment_type) {
-      case 'sslcommerz':
-        return this.sslcommerzPaymentService;
-      default:
-        return this.sslcommerzPaymentService;
+    const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+    const data = await context.refund(refundInitiateRequest);
+    if (data.code == HttpStatus.OK) {
+      return this.apiResponseService.successResponse(
+        [data.message || 'Payment refund query successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment query failed'],
+        res,
+      );
     }
   }
 
-  private getStoreInfo(store_id: string) {
-    switch (store_id) {
-      case 'testbox':
-        return 'qwerty';
+
+    @Post('/status')
+    async statusPayment(
+      @Body() paymentStatusRequest: PaymentStatusRequest,
+      @Res() res: Response,
+    ): Promise<Response<ResponseModel>> {
+      // @ts-ignore
+      const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+      const data = await context.paymentStatus(paymentStatusRequest);
+      if (data.code == HttpStatus.OK) {
+        return this.apiResponseService.successResponse(
+          [data.message || 'Payment refund query successfully'],
+          data.data,
+          res,
+        );
+      } else {
+        return this.apiResponseService.badRequestError(
+          [data.message || 'Payment query failed'],
+          res,
+        );
+      }
     }
-    return 'testbox';
-  }
+
 }

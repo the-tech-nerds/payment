@@ -1,69 +1,70 @@
 import { Injectable } from '@nestjs/common';
 import { SslCommerzPayment } from 'sslcommerz';
-import AbstractActionStrategy from '../../action/AbstractActionStrategy';
 import PaymentActionStrategy from '../../action/PaymentActionStrategy';
 import SslcommerzPaymentInitiateService from './sslcommerz-payment-initiate.service';
-import SslcommerzPaymentCancelService from './sslcommerz-payment-cancel.service';
 import SslcommerzPaymentSuccessService from './sslcommerz-payment-success.service';
+import {
+  PaymentResponse,
+  PaymentRequest,
+  SSLCommerzSuccessFailCancelIPNResponse, SSLCommerzRefundInitiateRequest, RefundQueryRequest, PaymentStatusRequest,
+} from '../../requests/payment.request';
+import AbstractActionStrategy from '../../action/abstract-action-strategy';
 import SslcommerzPaymentFailService from './sslcommerz-payment-fail.service';
+import SslcommerzPaymentCancelService from './sslcommerz-payment-cancel.service';
 import SslcommerzPaymentIpnService from './sslcommerz-payment-ipn.service';
-import SslcommerzPaymentValidation from './sslcommerz-payment-validation.service';
+import SslcommerzPaymentStatusService from './sslcommerz-payment-status.service';
 import SslcommerzPaymentRefundInitiateService from './sslcommerz-payment-refund-initiate.service';
 import SslcommerzPaymentRefundQueryService from './sslcommerz-payment-refund-query.service';
-import SslcommerzPaymentStatusService from './sslcommerz-payment-status.service';
 
 
 @Injectable()
-export class SslcommerzPaymentService extends AbstractActionStrategy implements PaymentActionStrategy {
+export class SslcommerzPaymentService<T> extends AbstractActionStrategy<T> implements PaymentActionStrategy<T> {
   sslcommerzService: SslCommerzPayment;
 
-  constructor() {
+  constructor(
+    private readonly sslcommerzPaymentInitiateService: SslcommerzPaymentInitiateService,
+    private readonly sslcommerzPaymentCancelService: SslcommerzPaymentCancelService,
+    private readonly sslcommerzPaymentFailService: SslcommerzPaymentFailService,
+    private readonly sslcommerzPaymentSuccessService: SslcommerzPaymentSuccessService,
+    private readonly sslcommerzPaymentIpnService: SslcommerzPaymentIpnService,
+    private readonly sslcommerzPaymentStatusService: SslcommerzPaymentStatusService,
+    private readonly sslcommerzPaymentRefundInitiateService: SslcommerzPaymentRefundInitiateService,
+    private readonly sslcommerzPaymentRefundQueryService: SslcommerzPaymentRefundQueryService,
+  ) {
     super();
+    this.sslcommerzService = new SslCommerzPayment(process.env.SSLCOMMERZ_STORE_ID, process.env.SSLCOMMERZ_STORE_PASSWORD, process.env.SSLCOMMERZ_STORE_IS_LIVE !== 'false');
+
   }
 
-  async pay(paymentRequest: any): Promise<any> {
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
-    const resp = await this.sslcommerzService.init(paymentRequest);
-    return SslcommerzPaymentInitiateService.execute(resp, paymentRequest);
+  async pay(paymentRequest: PaymentRequest): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentInitiateService.execute<T>(paymentRequest, this.sslcommerzService);
   }
 
-  async cancel(paymentResponse: any): Promise<any> {
-    return SslcommerzPaymentCancelService.execute(paymentResponse);
+  async cancel(paymentCancelResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentCancelService.execute<T>(paymentCancelResponse);
   }
 
-  async success(paymentResponse: any): Promise<any> {
-    return SslcommerzPaymentSuccessService.execute(paymentResponse);
+  async success(paymentSuccessResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentSuccessService.execute<T>(paymentSuccessResponse);
   }
 
-  async fail(paymentResponse: any): Promise<any> {
-    return SslcommerzPaymentFailService.execute(paymentResponse);
+  async fail(paymentFailResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentFailService.execute<T>(paymentFailResponse);
   }
 
-  async ipnCheck(paymentResponse: any, paymentValidationResponse: any): Promise<any> {
-    return SslcommerzPaymentIpnService.execute(paymentResponse, paymentValidationResponse);
+  async ipnCheck(ipnRequest: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentIpnService.execute<T>(ipnRequest, this.sslcommerzService);
   }
 
-  async validation(paymentRequest: any): Promise<any> {
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
-    const resp = await this.sslcommerzService.validate({ val_id: paymentRequest.val_id });
-    return SslcommerzPaymentValidation.execute(resp);
+  async paymentStatus(paymentStatusRequest: PaymentStatusRequest): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentStatusService.execute<T>(paymentStatusRequest, this.sslcommerzService);
   }
 
-  async refund(paymentRequest: any): Promise<any> {
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
-    const resp = await this.sslcommerzService.initiateRefund(paymentRequest);
-    return SslcommerzPaymentRefundInitiateService.execute(resp);
+  async refund(paymentRequest: SSLCommerzRefundInitiateRequest): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentRefundInitiateService.execute<T>(paymentRequest, this.sslcommerzService);
   }
 
-  async refundQuery(paymentRequest: any): Promise<any> {
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
-    const resp = await this.sslcommerzService.refundQuery(paymentRequest);
-    return SslcommerzPaymentRefundQueryService.execute(resp);
-  }
-
-  async paymentStatus(paymentRequest: any): Promise<any> {
-    this.sslcommerzService = new SslCommerzPayment(paymentRequest.store_id, paymentRequest.store_passwd, paymentRequest.is_live);
-    const resp = await this.sslcommerzService.transactionQueryByTransactionId(paymentRequest);
-    return SslcommerzPaymentStatusService.execute(resp);
+  refundQuery(sslcommerzRefundQueryRequest: RefundQueryRequest): Promise<PaymentResponse<T>> {
+    return this.sslcommerzPaymentRefundQueryService.execute<T>(sslcommerzRefundQueryRequest, this.sslcommerzService);
   }
 }
