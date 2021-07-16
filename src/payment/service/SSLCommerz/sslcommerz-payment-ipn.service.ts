@@ -1,18 +1,59 @@
-import { getMongoManager } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Payment } from '../../entities/payment.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { PaymentResponse, SSLCommerzSuccessFailCancelIPNResponse } from '../../requests/payment.request';
+import SslcommerzPaymentValidation from './sslcommerz-payment-validation.service';
+import { HttpStatus } from '@nestjs/common';
+import { SslCommerzPayment } from 'sslcommerz';
+import { Status } from '../../enum/payment-type.enum';
 
 export default class SslcommerzPaymentIpnService {
 
-  static execute(ipnResponse: any, validationResponse: any) {
-    getMongoManager().updateOne(Payment, { tran_id: ipnResponse.tran_id }, {
-      amount: ipnResponse.amount,
-      currency: ipnResponse.currency,
-      currency_type: ipnResponse.currency_type,
-      status: ipnResponse.status,
+  constructor(
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
+    private readonly sslcommerzPaymentValidation: SslcommerzPaymentValidation,
+  ) {
+  }
+
+  async execute<T>(ipnResponse: SSLCommerzSuccessFailCancelIPNResponse, sslcommerzService: SslCommerzPayment) : Promise<PaymentResponse<T>> {
+    const payment = await this.paymentRepository.findOne({ tran_id: ipnResponse.tran_id });
+    if (!payment) {
+      return {
+        code: HttpStatus.NOT_FOUND,
+        message: 'Transaction did not found',
+        data: null,
+      } as unknown as Promise<PaymentResponse<T>>;
+    }
+    if (payment?.status?.toUpperCase() === Status.valid) {
+      return {
+        code: HttpStatus.NOT_FOUND,
+        message: 'Transaction did not found',
+        data: null,
+      } as unknown as Promise<PaymentResponse<T>>;
+    }
+    const validationResponse = await this.sslcommerzPaymentValidation.execute(ipnResponse, sslcommerzService);
+    if (validationResponse?.APIConnect?.toLowerCase() == 'done' && ['VALID', 'VALIDATE'].includes(validationResponse.status) && validationResponse.amount === ipnResponse.amount && ipnResponse.risk_level !== 0) {
+      this.saveIPN(ipnResponse, validationResponse, Status.valid);
+      return {
+        code: HttpStatus.OK,
+        message: 'This a valid transaction.',
+        data: validationResponse,
+      } as unknown as Promise<PaymentResponse<T>>;
+    } else {
+      this.saveIPN(ipnResponse, validationResponse, Status.failed);
+      return {
+        code: HttpStatus.OK,
+        message: `This a invalid transaction the api and validation data miss-match and risk level ${validationResponse.risk_level}`,
+        data: validationResponse,
+      } as unknown as Promise<PaymentResponse<T>>;
+    }
+  }
+
+  async saveIPN(ipnResponse: SSLCommerzSuccessFailCancelIPNResponse, validationResponse: any, status: string) {
+    await this.paymentRepository.update({ tran_id: ipnResponse.tran_id }, {
+      status: status,
       store_amount: ipnResponse.store_amount,
-      tran_date: ipnResponse.tran_date,
-      tran_id: ipnResponse.tran_id,
-      updated_at: ipnResponse.updated_at,
       val_id: ipnResponse.val_id,
       payment_info: {
         bank_tran_id: ipnResponse.bank_tran_id,
@@ -34,19 +75,5 @@ export default class SslcommerzPaymentIpnService {
         verify_sign_sha2: ipnResponse.verify_sign_sha2,
       },
     });
-    if (ipnResponse.risk_level == 1) {
-      return {
-        message: 'This is a high risk transaction',
-      };
-    }
-    if (ipnResponse.status != 'VALID' || validationResponse.status != 'VALID' || validationResponse.amount != ipnResponse.amount) {
-      return {
-        message: 'This is a invalid transaction amount miss match or not valid status',
-      };
-    }
-    // @todo provide the service and call queue
-    return {
-      message: 'payment check and it\'s a success transaction',
-    };
   }
 }

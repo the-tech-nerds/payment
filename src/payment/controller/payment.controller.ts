@@ -1,7 +1,12 @@
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiResponseService } from '@the-tech-nerds/common-services';
 import { Response } from 'express';
-import { PaymentRequest, PaymentType } from '../requests/payment.request';
+import {
+  PaymentRequest, PaymentStatusRequest,
+  PaymentType,
+  SSLCommerzRefundInitiateRequest, RefundQueryRequest,
+  SSLCommerzSuccessFailCancelIPNResponse,
+} from '../requests/payment.request';
 import { PaymentResolver } from '../action/payment-resolver';
 
 @Controller()
@@ -37,7 +42,7 @@ export class PaymentController {
       );
     } else {
       return this.apiResponseService.badRequestError(
-        [data.message || 'Payment initiate successfully'],
+        [data.message || 'Payment initiate failed'],
         res,
       );
     }
@@ -54,6 +59,7 @@ export class PaymentController {
     const data = await context.success(paymentSuccessRequest);
     return res.redirect(data.data);
   }
+
   @Post('/cancel')
   async cancelPayment(
     @Body() paymentSuccessRequest: any,
@@ -73,82 +79,90 @@ export class PaymentController {
     const data = await context.success(paymentSuccessRequest);
     return res.redirect(data.data);
   }
-  /*
 
-
-
-
-
-    @Post('/ipn')
-    async ipnPayment(
-      @Body() paymentIpnRequest: any,
-      @Res() res: Response,
-    ): Promise<Response<ResponseModel>> {
-      // @ts-ignore
-      paymentIpnRequest?.payment_type = 'sslcommerz';
-      // @ts-ignore
-      paymentIpnRequest?.store_passwd = PaymentController.getStoreInfo(paymentIpnRequest.store_id);
-      this.context = new PaymentActionContext(paymentIpnRequest?.payment_type);
-      const paymentValidationResponse = await this.context.validation(paymentIpnRequest);
-      const data = await this.context.ipnCheck(paymentIpnRequest, paymentValidationResponse);
+  @Post('/ipn')
+  async ipnPayment(
+    @Body() ipnResponse: SSLCommerzSuccessFailCancelIPNResponse,
+    @Res() res: Response,
+  ): Promise<Response<ResponseModel>> {
+    const context = this.paymentResolver.resolve(PaymentType.SSLCOMMERZ);
+    const data = await context.ipnCheck(ipnResponse);
+    if (data.code == HttpStatus.OK) {
       return this.apiResponseService.successResponse(
-        ['Ipn request received please check the data property'],
-        data ,
+        [data.message || 'Payment initiate successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment initiate failed'],
         res,
       );
     }
+  }
+
+  @Post('/refund-initiate')
+  async refundpayiatePayment(
+    @Body() refundInitiateRequest: SSLCommerzRefundInitiateRequest,
+    @Res() res: Response,
+  ): Promise<Response<ResponseModel>> {
+    const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+    const data = await context.refund(refundInitiateRequest);
+    if (data.code == HttpStatus.OK) {
+      return this.apiResponseService.successResponse(
+        [data.message || 'Payment refund initiate successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment initiate failed'],
+        res,
+      );
+    }
+  }
+  @Post('/refund-query')
+  async refundQueryPayment(
+    @Body() refundInitiateRequest: RefundQueryRequest,
+    @Res() res: Response,
+  ): Promise<Response<ResponseModel>> {
+    const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+    const data = await context.refund(refundInitiateRequest);
+    if (data.code == HttpStatus.OK) {
+      return this.apiResponseService.successResponse(
+        [data.message || 'Payment refund query successfully'],
+        data.data,
+        res,
+      );
+    } else {
+      return this.apiResponseService.badRequestError(
+        [data.message || 'Payment query failed'],
+        res,
+      );
+    }
+  }
+
 
     @Post('/status')
     async statusPayment(
-      @Body() paymentRequest: any,
+      @Body() paymentStatusRequest: PaymentStatusRequest,
       @Res() res: Response,
     ): Promise<Response<ResponseModel>> {
       // @ts-ignore
-      paymentRequest?.payment_type = 'sslcommerz';
-      // @ts-ignore
-      paymentRequest?.store_passwd = PaymentController.getStoreInfo(paymentRequest.store_id);
-      this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-      const data = await this.context.paymentStatus(paymentRequest);
-      return this.apiResponseService.successResponse(
-        ['Payment Status retrieved successfully'],
-        data,
-        res,
-      );
-    }
-
-    @Post('/refund-initiate')
-    async refundpayiatePayment(
-      @Body() paymentRequest: PaymentRequest,
-      @Res() res: Response,
-    ): Promise<Response<ResponseModel>> {
-      this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-      const data = await this.context.refund(paymentRequest);
-      return this.apiResponseService.successResponse(
-        ['Product created successfully'],
-        data as Payment,
-        res,
-      );
-    }
-
-    @Post('/refund-query')
-    async refundQueryPayment(
-      @Body() paymentRequest: PaymentRequest,
-      @Res() res: Response,
-    ): Promise<Response<ResponseModel>> {
-      this.context = new PaymentActionContext(this.getPaymentService(paymentRequest?.payment_type));
-      const data = await this.context.refundQuery(paymentRequest);
-      return this.apiResponseService.successResponse(
-        ['Product created successfully'],
-        data as Payment,
-        res,
-      );
-    }
-
-    getStoreInfo(store_id: string) {
-      switch (store_id) {
-        case 'testbox':
-          return 'qwerty';
+      const context = this.paymentResolver.resolve(refundInitiateRequest.payment_type);
+      const data = await context.paymentStatus(paymentStatusRequest);
+      if (data.code == HttpStatus.OK) {
+        return this.apiResponseService.successResponse(
+          [data.message || 'Payment refund query successfully'],
+          data.data,
+          res,
+        );
+      } else {
+        return this.apiResponseService.badRequestError(
+          [data.message || 'Payment query failed'],
+          res,
+        );
       }
-      return 'testbox';
-    }*/
+    }
+
 }

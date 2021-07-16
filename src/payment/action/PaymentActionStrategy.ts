@@ -1,21 +1,24 @@
-import { PaymentResponse, PaymentRequest } from '../requests/payment.request';
+import {
+  PaymentResponse,
+  PaymentRequest,
+  SSLCommerzSuccessFailCancelIPNResponse,
+  SSLCommerzRefundInitiateRequest,
+} from '../requests/payment.request';
 
 export default interface PaymentActionStrategy<T> {
   pay(paymentRequest: PaymentRequest): Promise<PaymentResponse<T>>;
-  //
-  // validation(paymentRequest: any): any;
-  //
-  // refund(paymentRequest: any): any;
-  //
-  // refundQuery(paymentRequest: any): any;
-  //
-  // paymentStatus(paymentRequest: any): any;
-  //
-  // ipnCheck(paymentRequest: any, paymentValidationResponse: any): any;
 
-  success(paymentRequest: any): any;
+  refund(paymentRequest: SSLCommerzRefundInitiateRequest): Promise<PaymentResponse<T>>;
 
-  fail(paymentRequest: any): any;
+  refundQuery(paymentRequest: any): Promise<PaymentResponse<T>>;
 
-  cancel(paymentRequest: any): any;
+  paymentStatus(paymentRequest: any): Promise<PaymentResponse<T>>;
+
+  ipnCheck(paymentRequest: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>>;
+
+  success(paymentRequest: SSLCommerzSuccessFailCancelIPNResponse): any;
+
+  fail(paymentRequest: SSLCommerzSuccessFailCancelIPNResponse): any;
+
+  cancel(paymentRequest: SSLCommerzSuccessFailCancelIPNResponse): any;
 }

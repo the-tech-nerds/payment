@@ -1,4 +1,4 @@
-import { PaymentResponse, SSLCommerzSuccessFailCancelResponse } from '../../requests/payment.request';
+import { PaymentResponse, SSLCommerzSuccessFailCancelIPNResponse } from '../../requests/payment.request';
 import { HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from '../../entities/payment.entity';
@@ -10,15 +10,16 @@ export default class SslcommerzPaymentFailService {
     private paymentRepository: Repository<Payment>,
   ) {
   }
-  async execute<T>(sslcommerzFailResponse: SSLCommerzSuccessFailCancelResponse): Promise<PaymentResponse<T>> {
+
+  async execute<T>(sslcommerzFailResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
     const paymentEntry = this.paymentRepository.findOne({
       tran_id: sslcommerzFailResponse.tran_id,
     });
     let url = '';
     if (sslcommerzFailResponse.value_a.includes('?')) {
-      url = sslcommerzFailResponse.value_a+`&status=${sslcommerzFailResponse.status}&tran_id${sslcommerzFailResponse.tran_id}`
+      url = sslcommerzFailResponse.value_a + `&status=${sslcommerzFailResponse.status}&tran_id${sslcommerzFailResponse.tran_id}`;
     } else {
-      url = sslcommerzFailResponse.value_a+`?status=${sslcommerzFailResponse.status}&tran_id${sslcommerzFailResponse.tran_id}`
+      url = sslcommerzFailResponse.value_a + `?status=${sslcommerzFailResponse.status}&tran_id${sslcommerzFailResponse.tran_id}`;
     }
     if (!paymentEntry) {
       return {

@@ -1,4 +1,4 @@
-import { PaymentResponse, SSLCommerzSuccessFailCancelResponse } from '../../requests/payment.request';
+import { PaymentResponse, SSLCommerzSuccessFailCancelIPNResponse } from '../../requests/payment.request';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from '../../entities/payment.entity';
 import { Repository } from 'typeorm';
@@ -12,7 +12,7 @@ export default class SslcommerzPaymentSuccessService {
   ) {
   }
 
-  async execute<T>(sslcommerzSuccessResponse: SSLCommerzSuccessFailCancelResponse): Promise<PaymentResponse<T>> {
+  async execute<T>(sslcommerzSuccessResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
     const paymentEntry = this.paymentRepository.findOne({
       tran_id: sslcommerzSuccessResponse.tran_id,
     });

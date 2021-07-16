@@ -7,6 +7,13 @@ import { SslcommerzPaymentService } from './service/SSLCommerz/sslcommerz-paymen
 import { PaymentResolver } from './action/payment-resolver';
 import SslcommerzPaymentInitiateService from './service/SSLCommerz/sslcommerz-payment-initiate.service';
 import SslcommerzPaymentSuccessService from './service/SSLCommerz/sslcommerz-payment-success.service';
+import SslcommerzPaymentCancelService from './service/SSLCommerz/sslcommerz-payment-cancel.service';
+import SslcommerzPaymentFailService from './service/SSLCommerz/sslcommerz-payment-fail.service';
+import SslcommerzPaymentIpnService from './service/SSLCommerz/sslcommerz-payment-ipn.service';
+import SslcommerzPaymentStatusService from './service/SSLCommerz/sslcommerz-payment-status.service';
+import SslcommerzPaymentValidation from './service/SSLCommerz/sslcommerz-payment-validation.service';
+import SslcommerzPaymentRefundInitiateService from './service/SSLCommerz/sslcommerz-payment-refund-initiate.service';
+import SslcommerzPaymentRefundQueryService from './service/SSLCommerz/sslcommerz-payment-refund-query.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Payment])],
@@ -15,7 +22,14 @@ import SslcommerzPaymentSuccessService from './service/SSLCommerz/sslcommerz-pay
     PaymentResolver,
     SslcommerzPaymentService,
     SslcommerzPaymentInitiateService,
+    SslcommerzPaymentCancelService,
+    SslcommerzPaymentFailService,
     SslcommerzPaymentSuccessService,
+    SslcommerzPaymentIpnService,
+    SslcommerzPaymentStatusService,
+    SslcommerzPaymentValidation,
+    SslcommerzPaymentRefundInitiateService,
+    SslcommerzPaymentRefundQueryService
   ],
   controllers: [PaymentController],
   exports: [],

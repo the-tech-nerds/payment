@@ -12,7 +12,7 @@ export class Customer {
   cus_name: string;
   @IsNotEmpty({ message: 'Customer email is missing or invalid' })
   cus_email: string;
-  @IsNotEmpty({ message: 'Customer address is missing or invalid' })
+  @IsNotEmpty({ message: 'Customer address is missing or invalid ' })
   cus_add1: string;
   cus_add2?: string;
   @IsNotEmpty({ message: 'Customer city is missing or invalid' })
@@ -128,42 +128,99 @@ export interface SSLCommerzInitiateResponse {
   store_name: string,
 }
 
-export interface SSLCommerzSuccessFailCancelResponse {
-  tran_id: string,
-  val_id: string,
-  amount: number,
-  card_type: string,
-  store_amount: number,
-  card_no: string,
-  bank_tran_id: string,
-  status: string,
-  error: string,
-  tran_date: string,
-  currency: string,
-  card_issuer: string,
-  card_brand: string,
-  card_sub_brand: string,
-  card_issuer_country: string,
-  card_issuer_country_code: string,
-  store_id: string,
-  currency_type: string,
-  currency_amount: string,
-  currency_rate: string,
-  base_fair: string,
-  value_a: string,
-  value_b: string,
-  value_c: string,
-  value_d: string,
-  risk_level: string,
-  risk_title: string,
-  verify_sign: string,
-  verify_sign_sha2: string,
-  verify_key: string,
-  type: string,
+export interface SSLCommerzSuccessFailCancelIPNResponse {
+  tran_id: string;
+  val_id: string;
+  amount: number;
+  card_type: string;
+  store_amount: number;
+  card_no: string;
+  bank_tran_id: string;
+  status: string;
+  error: string;
+  tran_date: string;
+  currency: string;
+  card_issuer: string;
+  card_brand: string;
+  card_sub_brand: string;
+  card_issuer_country: string;
+  card_issuer_country_code: string;
+  store_id: string;
+  currency_type: string;
+  currency_amount: number;
+  currency_rate: string;
+  base_fair: string;
+  value_a: string;
+  value_b: string;
+  value_c: string;
+  value_d: string;
+  risk_level: number;
+  risk_title: string;
+  verify_sign: string;
+  verify_sign_sha2: string;
+  verify_key: string;
+  type: string;
+  cus_fax: string;
+  discount_amount: number;
+  discount_percentage: number;
+  discount_remarks: string;
+  emi_instalment: number,
+  emi_amount: number,
+  emi_description: string,
+  emi_issuer: string,
+  account_details: string,
+  APIConnect: string,
+  validated_on: string,
+  gw_version: string
 }
 
 export class PaymentResponse<T> {
   code: HttpStatus;
   message: string;
   data: T;
+}
+
+export interface RefundResponse {
+  APIConnect: string;
+  bank_tran_id: string;
+  trans_id: string;
+  refund_ref_id: string;
+  status: string;
+  errorReason: string;
+}
+
+export interface SSLCommerzRefundQueryResponse {
+  APIConnect: string;
+  bank_tran_id: string;
+  trans_id: string;
+  refund_ref_id: string;
+  status: string;
+  initiated_on: string,
+  refunded_on: string,
+  errorReason: string
+}
+
+export interface SSLCommerzRefunIntiateResponse {
+  APIConnect: string;
+  bank_tran_id: string;
+  trans_id: string;
+  refund_ref_id: string;
+  status: string;
+  errorReason: string;
+}
+
+export class SSLCommerzRefundInitiateRequest {
+  payment_type: PaymentType;
+  tran_id: string;
+
+}
+
+export class RefundQueryRequest {
+  payment_type: PaymentType;
+  tran_id: string;
+
+}export class PaymentStatusRequest {
+  payment_type: PaymentType;
+  tran_id: string;
+
 }

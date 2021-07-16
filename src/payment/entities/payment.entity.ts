@@ -13,10 +13,10 @@ export class SSLCommerzPaymentInfo {
   verify_key?: string;
 
   @Column({ type: 'boolean', default: false })
-  risk_level?: boolean;
+  risk_level?: number;
 
   @Column({ type: 'varchar', nullable: true })
-  risk_title?: boolean;
+  risk_title?: string;
 
   @Column({ type: 'integer', length: 2, nullable: true })
   emi_instalment?: number;
@@ -41,6 +41,9 @@ export class SSLCommerzPaymentInfo {
 
   @Column({ type: 'varchar', length: 63, nullable: true })
   refund_ref_id?: string;
+
+  @Column({ type: 'varchar', length: 63, nullable: true })
+  refund_status?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   refund_error_reason?: string;

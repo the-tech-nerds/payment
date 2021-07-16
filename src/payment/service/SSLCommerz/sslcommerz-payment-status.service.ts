@@ -1,23 +1,34 @@
-import { getMongoManager } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Payment } from '../../entities/payment.entity';
 import { Status } from '../../enum/payment-type.enum';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SslCommerzPayment } from 'sslcommerz';
+import { HttpStatus } from '@nestjs/common';
+import { PaymentResponse, PaymentStatusRequest } from '../../requests/payment.request';
 
 export default class SslcommerzPaymentStatusService {
 
-  static async execute(validationResponse: any, paymentRequest: any) {
-    if (validationResponse.APIConnect == 'DONE') {
-      if (validationResponse.no_of_trans_found == 0 && (validationResponse.element[0].status == 'VALID' || validationResponse.element[0].status == 'VALIDATED')) {
-        await getMongoManager().updateOne(Payment, { tran_id: validationResponse.tran_id }, {
+  constructor(
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
+  ) {
+  }
+
+  async execute<T>(paymentStatusRequest: PaymentStatusRequest, sslcommerzPaymentService: SslCommerzPayment): Promise<PaymentResponse<T>> {
+
+    const paymentStatusResponse = await sslcommerzPaymentService.transactionQueryByTransactionId({ tran_id: paymentStatusRequest.tran_id });
+
+    if (paymentStatusResponse.APIConnect == 'DONE') {
+      if (paymentStatusResponse.no_of_trans_found == 0 && (['VALID', 'VALIDATED'].includes(paymentStatusResponse.element[0].status))) {
+        await this.paymentRepository.update({ tran_id: paymentStatusResponse.tran_id }, {
           status: Status.valid.toUpperCase(),
         });
       }
     }
-    const payment = await getMongoManager().findOne(Payment, { tran_id: paymentRequest.tran_id });
     return {
-      status: payment?.status || validationResponse.element[0].status,
-      tran_id: payment?.val_id || validationResponse.element[0].tran_id,
-      amount: payment?.amount || validationResponse.element[0].amount,
-      store_amount: payment?.store_amount || validationResponse.element[0].store_amount,
-    };
+      code: HttpStatus.OK,
+      message: 'This a valid transaction',
+      data: paymentStatusResponse,
+    } as unknown as Promise<PaymentResponse<T>>;
   }
 }

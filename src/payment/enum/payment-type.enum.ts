@@ -1,8 +1,9 @@
 export const Status = {
-  initiated: 'initiated',
-  processing: 'processing',
-  failed: 'failed',
-  success: 'success',
-  valid: 'valid',
-  invalid: 'invalid',
+  initiated: 'INITIATED',
+  processing: 'PROCESSING',
+  failed: 'FAILED',
+  success: 'SUCCESS',
+  valid: 'VALID',
+  validate: 'VALIDATE',
+  invalid: 'INVALID',
 };

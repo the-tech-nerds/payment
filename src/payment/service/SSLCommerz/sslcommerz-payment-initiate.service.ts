@@ -15,6 +15,7 @@ export default class SslcommerzPaymentInitiateService {
   async execute<T>(paymentRequest: PaymentRequest, sslcommerzService: SslCommerzPayment): Promise<PaymentResponse<T>> {
 
     const paymentEntity = await this.paymentRepository.findOne({ tran_id: paymentRequest.tran_id });
+    console.log(paymentEntity);
     if (paymentEntity) {
       return {
         code: HttpStatus.BAD_REQUEST,

@@ -1,5 +1,9 @@
 import PaymentActionStrategy from './PaymentActionStrategy';
-import { PaymentResponse } from '../requests/payment.request';
+import {
+  PaymentResponse, PaymentStatusRequest,
+  SSLCommerzRefundInitiateRequest, RefundQueryRequest,
+  SSLCommerzSuccessFailCancelIPNResponse,
+} from '../requests/payment.request';
 import { PaymentRequest } from '../requests/payment.request';
 
 export default class PaymentActionContext<T> {
@@ -10,35 +14,33 @@ export default class PaymentActionContext<T> {
     return this.strategy.pay(request);
   }
 
-  // validation(request: any) {
-  //   return this.strategy.validation(request);
-  // }
-  //
-  // refund(request: any) {
-  //   return this.strategy.refund(request);
-  // }
-  //
-  // refundQuery(request: any) {
-  //   return this.strategy.refundQuery(request);
-  // }
 
-  // paymentStatus(request: any) {
-  //   return this.strategy.paymentStatus(request);
-  // }
-  //
-  // ipnCheck(ipnResponse: any, validationResponse: any) {
-  //   return this.strategy.ipnCheck(ipnResponse, validationResponse);
-  // }
+  refund(request: SSLCommerzRefundInitiateRequest): Promise<PaymentResponse<T>> {
+    return this.strategy.refund(request);
+  }
 
-  success(request: any) {
+
+  refundQuery(request: RefundQueryRequest) :Promise<PaymentResponse<T>>{
+    return this.strategy.refundQuery(request);
+  }
+
+  paymentStatus(request: PaymentStatusRequest):Promise<PaymentResponse<T>> {
+    return this.strategy.paymentStatus(request);
+  }
+
+  ipnCheck(ipnResponse: SSLCommerzSuccessFailCancelIPNResponse): Promise<PaymentResponse<T>> {
+    return this.strategy.ipnCheck(ipnResponse);
+  }
+
+  success(request: SSLCommerzSuccessFailCancelIPNResponse): any {
     return this.strategy.success(request);
   }
 
-  fail(request: any) {
+  fail(request: SSLCommerzSuccessFailCancelIPNResponse): any {
     return this.strategy.fail(request);
   }
 
-  cancel(request: any) {
+  cancel(request: SSLCommerzSuccessFailCancelIPNResponse): any {
     return this.strategy.cancel(request);
   }
 }
